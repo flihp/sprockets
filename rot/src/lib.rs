@@ -8,7 +8,8 @@
 #![cfg_attr(not(test), no_std)]
 
 use sprockets_common::certificates::{
-    Ed25519Certificates, Ed25519PublicKey, Ed25519Signature, SerialNumber,
+    Ed25519Certificates, Ed25519PublicKey, Ed25519Signature,
+    SerialNumber,
 };
 use sprockets_common::measurements::{
     HbsMeasurements, Measurements, RotMeasurements, SpMeasurements,
