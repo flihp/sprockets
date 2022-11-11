@@ -10,12 +10,24 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      - name: Report cargo version
-        run: cargo --version
-      - name: Report rustfmt version
-        run: cargo fmt -- --version
+      - name: Get versions
+        id: versions
+        run: |
+          echo CARGO_VERSION=$(cargo --version) >> $GITHUB_OUTPUT
+          echo RUSTFMT_VERSION=$(cargo fmt -- --version) >> $GITHUB_OUTPUT
       - name: Check style
-        run: cargo fmt -- --check
+        id: rustfmt-check
+        run: |
+          CHECK=$(cargo fmt -- --check)
+          echo "CHECK=$CHECK" >> $GITHUB_OUTPUT
+      - name: Report style check
+        run: |
+          CARGO_VERSION="${{ steps.versions.outputs.CARGO_VERSION }}"
+          RUSTFMT_VERSION="${{ steps.versions.outputs.RUSTFMT_VERSION }}"
+          RUSTFMT_CHECK="${{ steps.rustfmt-check.outputs.CHECK }}"
+          echo "Cargo version $CARGO_VERSION"
+          echo "rustfmt version $RUSTFMT_VERSION"
+          echo "rustfmt check $RUSTFMT_CHECK"
 
   clippy-lint:
     runs-on: ubuntu-20.04
