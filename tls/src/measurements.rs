@@ -3,10 +3,9 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::Error;
-use attest_data::{DiceTcbInfo, Log, Measurement};
+use attest_data::{DiceTcbInfo, Log, Measurement, DICE_TCB_INFO};
 use camino::Utf8PathBuf;
 use const_oid::db::rfc4519::{COMMON_NAME, COUNTRY_NAME, ORGANIZATION_NAME};
-use const_oid::ObjectIdentifier;
 use der::{Decode, DecodeValue, Header, SliceReader};
 use rats_corim::Corim;
 use std::collections::HashSet;
@@ -32,10 +31,6 @@ pub fn corim_to_set(
     }
     Ok(set)
 }
-
-// this doesn't belong here ... maybe `attest-data`?
-const DICE_TCB_INFO: ObjectIdentifier =
-    ObjectIdentifier::new_unwrap("2.23.133.5.4.1");
 
 pub fn artifacts_to_set(
     pki_path: &PkiPath,
