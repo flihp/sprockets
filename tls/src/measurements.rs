@@ -3,18 +3,15 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::Error;
-use attest_data::{Log, Measurement, Sha3_256Digest};
+use attest_data::{Fwid, Log, Measurement};
 use camino::Utf8PathBuf;
 use const_oid::db::rfc4519::{COMMON_NAME, COUNTRY_NAME, ORGANIZATION_NAME};
-use const_oid::{AssociatedOid, ObjectIdentifier};
-use der::{
-    asn1::OctetString, Decode, DecodeValue, Header, Sequence, SliceReader,
-};
+use const_oid::ObjectIdentifier;
+use der::{Decode, DecodeValue, Header, Sequence, SliceReader};
 use rats_corim::Corim;
 use std::collections::HashSet;
 
 pub use dice_mfg_msgs::PlatformId;
-use sha3::Sha3_256;
 use x509_cert::{
     der::{
         asn1::{PrintableString, Utf8StringRef},
@@ -36,18 +33,6 @@ pub fn corim_to_set(
     Ok(set)
 }
 
-// Replace with something in `attest_data`,
-
-// DICE Attestation Architecture §6.1.1:
-// FWID ::== SEQUENCE {
-#[derive(Debug, Sequence)]
-pub struct Fwid {
-    // hashAlg OBJECT IDENTIFIER,
-    hash_algorithm: ObjectIdentifier,
-    // digest OCTET STRING
-    digest: OctetString,
-}
-
 // DICE Attestation Architecture §6.1.1:
 // DiceTcbInfo ::== SEQUENCE {
 #[derive(Debug, Sequence)]
@@ -56,28 +41,6 @@ pub struct DiceTcbInfo {
     // where FWIDLIST ::== SEQUENCE SIZE (1..MAX) OF FWID
     #[asn1(context_specific = "6", tag_mode = "IMPLICIT", optional = "true")]
     fwids: Option<Vec<Fwid>>,
-}
-
-trait FromFwid {
-    fn from_fwid(fwid: &Fwid) -> Result<Self, Error>
-    where
-        Self: Sized;
-}
-
-impl FromFwid for Measurement {
-    fn from_fwid(fwid: &Fwid) -> Result<Self, Error> {
-        // map from fwid.hash_algorithm ObjectIdentifier to Measurement enum
-        if fwid.hash_algorithm == Sha3_256::OID {
-            // pull the associated data from fwid.digest OctetString
-            let digest = fwid.digest.as_bytes();
-            let digest = Sha3_256Digest::try_from(digest).unwrap();
-
-            Ok(Measurement::Sha3_256(digest))
-        } else {
-            //Err(anyhow!("Unsupported Measurement digest: Sha3_256"))
-            panic!("bad digest");
-        }
-    }
 }
 
 // this doesn't belong here ... maybe `attest-data`?
@@ -107,7 +70,7 @@ pub fn artifacts_to_set(
                     if let Some(fwid_vec) = &tcb_info.fwids {
                         for fwid in fwid_vec {
                             let measurement =
-                                Measurement::from_fwid(fwid).unwrap();
+                                Measurement::try_from(fwid).unwrap();
                             measurements.insert(measurement);
                         }
                     }
