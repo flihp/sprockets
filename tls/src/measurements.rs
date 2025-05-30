@@ -3,11 +3,11 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::Error;
-use attest_data::{Fwid, Log, Measurement};
+use attest_data::{DiceTcbInfo, Log, Measurement};
 use camino::Utf8PathBuf;
 use const_oid::db::rfc4519::{COMMON_NAME, COUNTRY_NAME, ORGANIZATION_NAME};
 use const_oid::ObjectIdentifier;
-use der::{Decode, DecodeValue, Header, Sequence, SliceReader};
+use der::{Decode, DecodeValue, Header, SliceReader};
 use rats_corim::Corim;
 use std::collections::HashSet;
 
@@ -31,16 +31,6 @@ pub fn corim_to_set(
         }
     }
     Ok(set)
-}
-
-// DICE Attestation Architecture §6.1.1:
-// DiceTcbInfo ::== SEQUENCE {
-#[derive(Debug, Sequence)]
-pub struct DiceTcbInfo {
-    // fwids [6] IMPLICIT FWIDLIST OPTIONAL,
-    // where FWIDLIST ::== SEQUENCE SIZE (1..MAX) OF FWID
-    #[asn1(context_specific = "6", tag_mode = "IMPLICIT", optional = "true")]
-    fwids: Option<Vec<Fwid>>,
 }
 
 // this doesn't belong here ... maybe `attest-data`?
