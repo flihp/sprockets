@@ -5,19 +5,12 @@
 use crate::Error;
 use attest_data::{DiceTcbInfo, Log, Measurement, DICE_TCB_INFO};
 use camino::Utf8PathBuf;
-use const_oid::db::rfc4519::{COMMON_NAME, COUNTRY_NAME, ORGANIZATION_NAME};
 use der::{Decode, DecodeValue, Header, SliceReader};
 use rats_corim::Corim;
 use std::collections::HashSet;
 
 pub use dice_mfg_msgs::PlatformId;
-use x509_cert::{
-    der::{
-        asn1::{PrintableString, Utf8StringRef},
-        Tag, Tagged,
-    },
-    PkiPath,
-};
+use x509_cert::PkiPath;
 
 pub fn corim_to_set(
     paths: &Vec<Utf8PathBuf>,
@@ -99,75 +92,9 @@ pub fn measure_from_corpus(
     Ok(MeasureResult::Ok)
 }
 
-pub trait FromPkiPath {
-    fn from_pki_path(pki_path: &PkiPath) -> Result<Option<Self>, Error>
-    where
-        Self: Sized;
-}
-
-impl FromPkiPath for PlatformId {
-    // Find the PlatformId in the provided cert chain. This value is stored in
-    // cert's `Subject` field. The Subject field C / Country and O /
-    // Organization must always be'US' and 'Oxide Computer Company'
-    // respectively. The PlatformId string is stored in the Subject CN /
-    // commonName. We validate its format using the dice_mfg_msgs::PlatformId
-    // type. If one PlatformId is found it is returned. If none are found then
-    // None is returned. The path must have only one cert w/ a valid
-    // PlatformId, if more than one is found an error is returned.
-    fn from_pki_path(pki_path: &PkiPath) -> Result<Option<Self>, Error> {
-        let mut platform_id: Option<PlatformId> = None;
-        for cert in pki_path {
-            for elm in &cert.tbs_certificate.subject.0 {
-                for atav in elm.0.iter() {
-                    if atav.oid == COUNTRY_NAME {
-                        if atav.value.tag() != Tag::PrintableString {
-                            panic!("Invalid tag for Subject countryName");
-                        }
-                        let country =
-                            PrintableString::try_from(&atav.value).unwrap();
-                        let country: &str = country.as_ref();
-                        if country != "US" {
-                            panic!("Invalid countryName");
-                        }
-                    } else if atav.oid == ORGANIZATION_NAME {
-                        if atav.value.tag() != Tag::Utf8String {
-                            panic!("Invalid tag for Subject organizationName");
-                        }
-                        let organization =
-                            Utf8StringRef::try_from(&atav.value).unwrap();
-                        let organization: &str = organization.as_ref();
-                        if organization != "Oxide Computer Company" {
-                            panic!("Invalid organizationName");
-                        }
-                    } else if atav.oid == COMMON_NAME {
-                        if atav.value.tag() != Tag::Utf8String {
-                            panic!("Invalid tag for Subject commonName");
-                        }
-                        let common =
-                            Utf8StringRef::try_from(&atav.value).unwrap();
-                        let common: &str = common.as_ref();
-                        if let Ok(id) = PlatformId::try_from(common) {
-                            if platform_id.is_none() {
-                                platform_id = Some(id);
-                            } else {
-                                panic!(
-                                    "PkiPath cannot have multiple PlatformIds"
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(platform_id)
-    }
-}
-
 pub fn get_platform_id(
     certs: &[rustls::pki_types::CertificateDer<'static>],
 ) -> Result<String, Error> {
-    use crate::measurements::FromPkiPath;
     use der::Decode;
 
     let mut chain = x509_cert::PkiPath::new();
@@ -177,10 +104,8 @@ pub fn get_platform_id(
             crate::Certificate::from_der(c.as_ref()).map_err(Error::Der)?,
         );
     }
+
     Ok(String::from(
-        crate::measurements::PlatformId::from_pki_path(&chain)?
-            .unwrap()
-            .as_str()
-            .unwrap(),
+        PlatformId::try_from(&chain).unwrap().as_str().unwrap(),
     ))
 }
