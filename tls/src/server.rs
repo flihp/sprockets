@@ -144,7 +144,7 @@ impl Server {
             .map(|x| load_root_cert(&x))
             .collect::<Result<Vec<Certificate>, _>>()?;
 
-        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone())?)
+        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone()))
             as Arc<dyn ClientCertVerifier>;
 
         let server_resolver = Arc::new(CertResolver::new(
@@ -173,7 +173,7 @@ impl Server {
             .map(|x| load_root_cert(&x))
             .collect::<Result<Vec<Certificate>, _>>()?;
 
-        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone())?)
+        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone()))
             as Arc<dyn ClientCertVerifier>;
 
         let server_resolver =

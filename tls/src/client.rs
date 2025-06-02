@@ -169,7 +169,7 @@ impl Client {
             .map(|x| load_root_cert(&x))
             .collect::<Result<Vec<Certificate>, _>>()?;
 
-        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone())?)
+        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone()))
             as Arc<dyn ServerCertVerifier>;
 
         let client_resolver = Arc::new(CertResolver::new(
@@ -199,7 +199,7 @@ impl Client {
             .map(|x| load_root_cert(&x))
             .collect::<Result<Vec<Certificate>, _>>()?;
 
-        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone())?)
+        let verifier = Arc::new(RotCertVerifier::new(roots, log.clone()))
             as Arc<dyn ServerCertVerifier>;
 
         let client_resolver =
@@ -319,7 +319,7 @@ mod tests {
         let mut node_keydir = pki_keydir.clone();
         node_keydir.push("sled1");
         let root = load_root_cert(&pki_keydir.join("root.cert.pem")).unwrap();
-        let verifier = RotCertVerifier::new(vec![root], logger()).unwrap();
+        let verifier = RotCertVerifier::new(vec![root], logger());
         let resolver = CertResolver::new(
             logger(),
             ResolveSetting::Local {
