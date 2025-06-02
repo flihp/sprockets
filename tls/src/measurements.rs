@@ -36,9 +36,7 @@ pub fn measure_from_corpus(
 
     let measurements = MeasurementSet::from_artifacts(&certs, &log)?;
 
-    if !measurements.is_subset(&corpus) {
-        return Ok(MeasureResult::NotASubset);
-    }
+    dice_verifier::verify_measurements(&measurements, &corpus)?;
 
     Ok(MeasureResult::Ok)
 }
