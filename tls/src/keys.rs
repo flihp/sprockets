@@ -293,6 +293,12 @@ impl RotCertVerifier {
         let pki_path = Self::pki_path(end_entity, intermediates)?;
         let mut err = vec![];
 
+        // XXX: The cert chain being verified terminates at the TQ signer.
+        // The `verify_cert_chain` function was intended to verify the
+        // attestation cert chain though since it only verifies signatures it
+        // works just as well for the TQ cert chain. This may not be the case
+        // in the future i.e. if we start verifying specific features /
+        // attributes of the attestation signer cert.
         match dice_verifier::verify_cert_chain(&pki_path, Some(&self.roots)) {
             Ok(_) => {
                 info!(self.log, "Certificate chain verified successfully");

@@ -30,12 +30,17 @@ pub fn measure_from_corpus(
 
     let corpus = ReferenceMeasurements::try_from(&corims[..])?;
 
+    // XXX: This gets us the measurement log and the cert chain from the
+    // attestation signer back to the first intermediate.
     let ipcc = AttestIpcc::new()?;
     let log = ipcc.get_measurement_log()?;
     let certs = ipcc.get_certificates()?;
 
     let measurements = MeasurementSet::from_artifacts(&certs, &log)?;
 
+    // XXX: This function verifies the measurements from the local platform.
+    // We're concerned with the trustworthiness of the peer we're communicating
+    // with.
     dice_verifier::verify_measurements(&measurements, &corpus)?;
 
     Ok(MeasureResult::Ok)
