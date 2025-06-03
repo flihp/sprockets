@@ -133,7 +133,7 @@ impl Client {
     pub async fn connect_measured(
         config: SprocketsConfig,
         addr: SocketAddrV6,
-        corpus: &Vec<Utf8PathBuf>,
+        corpus: &[Utf8PathBuf],
         log: slog::Logger,
     ) -> Result<(Stream<TcpStream>, Option<String>), Error> {
         let (c, measure) = match config.resolve {
@@ -248,7 +248,7 @@ impl Client {
     async fn connect_with_config_measured(
         tls_config: ClientConfig,
         addr: SocketAddrV6,
-        corpus: &Vec<Utf8PathBuf>,
+        corpus: &[Utf8PathBuf],
         log: slog::Logger,
         measure: bool,
     ) -> Result<(Stream<TcpStream>, Option<String>), Error> {

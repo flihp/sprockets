@@ -62,10 +62,27 @@ pub enum Error {
     BadPrivateKey(String),
 
     #[error("corim error: {0}")]
-    Corim(#[from] rats_corim::Error),
+    Corim(#[from] dice_verifier::CorimError),
 
     #[error("No certificate chain from peer")]
     NoPeerCertificate,
+
+    #[error("Failed to construct MeasurementSet from artifacts: {0}")]
+    MeasurementSet(#[from] dice_verifier::MeasurementSetError),
+
+    #[error("Failed to construct ReferenceMeasurements from Corim")]
+    ReferenceMeasurements(#[from] dice_verifier::ReferenceMeasurementsError),
+
+    #[error("Failed get attestation data: {0}")]
+    AttestError(#[from] dice_verifier::AttestError),
+
+    #[error("Verification Failed get attestation data: {0}")]
+    AttestationVerificationError(
+        #[from] dice_verifier::VerifyMeasurementsError,
+    ),
+
+    #[error("Failed to create Ipcc instance")]
+    IpccError(#[from] dice_verifier::ipcc::IpccError),
 }
 
 /// A type representing an established sprockets connection.

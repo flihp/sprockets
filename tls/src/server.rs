@@ -242,7 +242,7 @@ impl Server {
 
     pub async fn accept_measured(
         &mut self,
-        corpus: &Vec<Utf8PathBuf>,
+        corpus: &[Utf8PathBuf],
     ) -> Result<(Stream<TcpStream>, core::net::SocketAddr, Option<String>), Error>
     {
         let (stream, addr) = self.tcp_listener.accept().await?;
