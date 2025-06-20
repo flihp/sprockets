@@ -10,11 +10,19 @@ use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio_rustls::TlsConnector;
 
-use crate::keys::ResolveSetting;
+use crate::keys::{AttestConfig, ResolveSetting};
 use crate::keys::{CertResolver, RotCertVerifier, SprocketsConfig};
 use crate::{Error, Stream};
-use crate::{crypto_provider, load_root_cert};
+use crate::{
+    certs_from_der, certs_to_der, crypto_provider, load_root_cert, recv_msg,
+    send_msg,
+};
 use camino::Utf8PathBuf;
+use dice_verifier::{
+    Attest, AttestMock, Attestation, Corim, Log, MeasurementSet, Nonce,
+    ReferenceMeasurements, ipcc::AttestIpcc,
+};
+use hubpack::SerializedSize;
 use rustls::{
     ClientConfig, SignatureScheme,
     client::{
@@ -111,8 +119,18 @@ impl Client {
     pub async fn connect(
         config: SprocketsConfig,
         addr: SocketAddrV6,
+        corpus: Vec<Utf8PathBuf>,
         log: slog::Logger,
     ) -> Result<Stream<TcpStream>, Error> {
+        use x509_cert::der::DecodePem;
+
+        let mut roots = Vec::new();
+        for root in &config.roots {
+            let root = std::fs::read(root)?;
+            let root = Certificate::from_pem(&root)?;
+            roots.push(root);
+        }
+
         let c = match config.resolve {
             ResolveSetting::Local {
                 priv_key,
@@ -127,7 +145,24 @@ impl Client {
                 Client::new_tls_ipcc_client_config(config.roots, log.clone())?
             }
         };
-        Client::connect_with_config(c, addr, log).await
+
+        let attest: Box<dyn Attest> = match config.attest {
+            AttestConfig::Ipcc => Box::new(AttestIpcc::new()?),
+            AttestConfig::Local {
+                priv_key,
+                cert_chain,
+                log,
+            } => Box::new(AttestMock::load(cert_chain, log, priv_key)?),
+        };
+
+        // load corims into a set of ReferenceMeasurements
+        let mut corims = Vec::new();
+        for c in corpus {
+            corims.push(Corim::from_file(c)?);
+        }
+        let corpus = ReferenceMeasurements::try_from(corims.as_slice())?;
+
+        Client::connect_with_config(c, attest, roots, corpus, addr, log).await
     }
 
     fn new_tls_local_client_config(
@@ -191,8 +226,11 @@ impl Client {
     /// Connect to a remote peer
     async fn connect_with_config(
         tls_config: ClientConfig,
+        attest: Box<dyn Attest>,
+        roots: Vec<Certificate>,
+        reference_measurements: ReferenceMeasurements,
         addr: SocketAddrV6,
-        _log: slog::Logger,
+        slog: slog::Logger,
     ) -> Result<Stream<TcpStream>, Error> {
         // Nodes on the bootstrap network don't have DNS names. We don't
         // actually ever know who we are connecting to on the bootstrap
@@ -211,8 +249,84 @@ impl Client {
             }
         };
 
-        let stream = connector.connect(dnsname, stream).await?;
-        // TODO: Measurement Attestations
+        let mut stream = connector.connect(dnsname, stream).await?;
+
+        // send client attestation cert chain to server
+        let cert_chain = attest.get_certificates()?;
+        let cert_chain_der = certs_to_der(&cert_chain)?;
+        send_msg(&mut stream, &cert_chain_der).await?;
+
+        // get & verify server attestation cert chain
+        let server_cert_chain = recv_msg(&mut stream).await?;
+        let server_cert_chain = certs_from_der(&server_cert_chain)?;
+        let root =
+            dice_verifier::verify_cert_chain(&server_cert_chain, Some(&roots))?;
+        let client_platform_id =
+            dice_mfg_msgs::PlatformId::try_from(&server_cert_chain)?;
+        info!(
+            slog,
+            "Cert chain from peer \"{}\" verified against root \"{}\"",
+            client_platform_id.as_str()?,
+            root.tbs_certificate.subject,
+        );
+
+        // send Nonce to server
+        let nonce = Nonce::from_platform_rng()?;
+        send_msg(&mut stream, nonce.as_ref()).await?;
+
+        // get Nonce from server
+        let server_nonce = recv_msg(&mut stream).await?;
+        let server_nonce = Nonce::try_from(server_nonce)?;
+
+        // get measurement log and send to server
+        let log = attest.get_measurement_log()?;
+        let mut buf = vec![0u8; Log::MAX_SIZE];
+        let log_len = hubpack::serialize(&mut buf, &log)?;
+        send_msg(&mut stream, &buf[..log_len]).await?;
+
+        // get measurement log from server
+        let server_log = recv_msg(&mut stream).await?;
+        let (server_log, _): (Log, _) = hubpack::deserialize(&server_log)?;
+
+        // get attestation & verify it before sending it
+        let attestation = attest.attest(&server_nonce)?;
+        // TODO: retry if verification fails?
+        dice_verifier::verify_attestation(
+            &cert_chain[0],
+            &attestation,
+            &log,
+            &server_nonce,
+        )?;
+
+        // hubpack attestation and send to server
+        let mut buf = vec![0u8; Attestation::MAX_SIZE];
+        let len = hubpack::serialize(&mut buf, &attestation)?;
+        send_msg(&mut stream, &buf[..len]).await?;
+
+        // get attestation from server
+        let server_attestation = recv_msg(&mut stream).await?;
+        let (server_attestation, _): (Attestation, _) =
+            hubpack::deserialize(&server_attestation)?;
+
+        // verify server attestation
+        dice_verifier::verify_attestation(
+            &server_cert_chain[0],
+            &server_attestation,
+            &server_log,
+            &nonce,
+        )?;
+        info!(slog, "Peer attestation verified");
+
+        // appraise measurements from server attestation against reference
+        // measurements
+        let measurements =
+            MeasurementSet::from_artifacts(&server_cert_chain, &server_log)?;
+        dice_verifier::verify_measurements(
+            &measurements,
+            &reference_measurements,
+        )?;
+        info!(slog, "Peer measurements appraised successfully");
+
         Ok(Stream::new(stream.into()))
     }
 }

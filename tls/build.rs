@@ -29,6 +29,23 @@ fn pki_gen_cmd(cmd: &str) -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "unittest")]
+fn corim_gen_cmd(command: &str, input: &str, output: &str) -> Result<()> {
+    // attest-mock "input" "cmd" > "output"
+    let mut cmd = std::process::Command::new("attest-mock");
+    cmd.arg(input).arg(command);
+    let cmd_output = cmd.output()?;
+
+    if cmd_output.status.success() {
+        std::fs::write(output, cmd_output.stdout).context("write {input}")
+    } else {
+        let stderr = String::from_utf8(cmd_output.stderr).unwrap();
+        println!("stderr: {stderr}");
+
+        Err(anyhow!("cmd failed: {cmd:?}"))
+    }
+}
+
 fn main() -> Result<()> {
     #[cfg(target_os = "illumos")]
     {
@@ -45,6 +62,10 @@ fn main() -> Result<()> {
         pki_gen_cmd("generate-key-pairs")?;
         pki_gen_cmd("generate-certificates")?;
         pki_gen_cmd("generate-certificate-lists")?;
+
+        corim_gen_cmd("log", "log.kdl", "log.bin")?;
+        corim_gen_cmd("corim", "corim-rot.kdl", "corim-rot.cbor")?;
+        corim_gen_cmd("corim", "corim-sp.kdl", "corim-sp.cbor")?;
 
         std::env::set_current_dir(start_dir)
             .context("restore current dir to original")?;

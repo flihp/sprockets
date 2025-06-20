@@ -379,5 +379,20 @@ impl RotCertVerifier {
 #[serde(deny_unknown_fields)]
 pub struct SprocketsConfig {
     pub resolve: ResolveSetting,
+    pub attest: AttestConfig,
     pub roots: Vec<Utf8PathBuf>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(tag = "which", rename_all = "snake_case")]
+// Configuration for attestation interface / artifacts.
+pub enum AttestConfig {
+    // Use `dice-verifier::AttestIpcc`.
+    Ipcc,
+    // Use artifacts from local files with `dice_verifier::AttestMock`.
+    Local {
+        priv_key: Utf8PathBuf,
+        cert_chain: Utf8PathBuf,
+        log: Utf8PathBuf,
+    },
 }
