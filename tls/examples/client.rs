@@ -7,7 +7,7 @@ use camino::Utf8PathBuf;
 use clap::Parser;
 use slog::Drain;
 use sprockets_tls::client::Client;
-use sprockets_tls::keys::{ResolveSetting, SprocketsConfig};
+use sprockets_tls::keys::{AttestConfig, ResolveSetting, SprocketsConfig};
 use std::net::SocketAddrV6;
 use std::str::FromStr;
 use tokio::io::{AsyncWriteExt, copy, split};
@@ -17,8 +17,11 @@ use tokio::io::{stdin as tokio_stdin, stdout as tokio_stdout};
 enum Setting {
     Ipcc,
     Local {
-        priv_key: Utf8PathBuf,
-        cert_chain: Utf8PathBuf,
+        tq_priv_key: Utf8PathBuf,
+        tq_cert_chain: Utf8PathBuf,
+        attest_priv_key: Utf8PathBuf,
+        attest_cert_chain: Utf8PathBuf,
+        log: Utf8PathBuf,
     },
 }
 
@@ -28,7 +31,9 @@ struct Args {
     #[clap(long)]
     roots: Vec<Utf8PathBuf>,
     #[clap(subcommand)]
-    resolve: Setting,
+    config: Setting,
+    #[clap(long)]
+    corpus: Vec<Utf8PathBuf>,
     /// Address and port to bind
     #[clap(long)]
     addr: String,
@@ -48,23 +53,36 @@ async fn main() {
         panic!("Need at least one root");
     }
 
-    let client_config = SprocketsConfig {
-        roots: args.roots,
-        resolve: match args.resolve {
-            Setting::Ipcc => ResolveSetting::Ipcc,
-            Setting::Local {
-                priv_key,
-                cert_chain,
-            } => ResolveSetting::Local {
-                priv_key,
-                cert_chain,
+    let (attest, resolve) = match args.config {
+        Setting::Ipcc => (AttestConfig::Ipcc, ResolveSetting::Ipcc),
+        Setting::Local {
+            tq_priv_key,
+            tq_cert_chain,
+            attest_priv_key,
+            attest_cert_chain,
+            log,
+        } => (
+            AttestConfig::Local {
+                priv_key: attest_priv_key,
+                cert_chain: attest_cert_chain,
+                log,
             },
-        },
+            ResolveSetting::Local {
+                priv_key: tq_priv_key,
+                cert_chain: tq_cert_chain,
+            },
+        ),
+    };
+
+    let client_config = SprocketsConfig {
+        attest,
+        roots: args.roots,
+        resolve,
     };
 
     let addr = SocketAddrV6::from_str(&args.addr).unwrap();
 
-    let stream = Client::connect(client_config, addr, log.clone())
+    let stream = Client::connect(client_config, addr, args.corpus, log.clone())
         .await
         .unwrap();
 
