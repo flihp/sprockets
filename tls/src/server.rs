@@ -7,16 +7,16 @@
 use crate::keys::{
     CertResolver, ResolveSetting, RotCertVerifier, SprocketsConfig,
 };
-use crate::{crypto_provider, load_root_cert};
 use crate::{Error, Stream};
+use crate::{crypto_provider, load_root_cert};
 use camino::Utf8PathBuf;
 use rustls::{
+    CipherSuite, ServerConfig, SignatureScheme,
     server::{
-        danger::{ClientCertVerified, ClientCertVerifier},
         ResolvesServerCert,
+        danger::{ClientCertVerified, ClientCertVerifier},
     },
     version::TLS13,
-    CipherSuite, ServerConfig, SignatureScheme,
 };
 use slog::error;
 use std::net::SocketAddrV6;

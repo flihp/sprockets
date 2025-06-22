@@ -10,7 +10,7 @@ use sprockets_tls::client::Client;
 use sprockets_tls::keys::{ResolveSetting, SprocketsConfig};
 use std::net::SocketAddrV6;
 use std::str::FromStr;
-use tokio::io::{copy, split, AsyncWriteExt};
+use tokio::io::{AsyncWriteExt, copy, split};
 use tokio::io::{stdin as tokio_stdin, stdout as tokio_stdout};
 
 #[derive(Debug, Parser)]

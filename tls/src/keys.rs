@@ -6,14 +6,14 @@
 
 use camino::Utf8PathBuf;
 use dice_verifier::PkiPathSignatureVerifier;
-use ed25519_dalek::pkcs8::PrivateKeyInfo;
 use ed25519_dalek::Signer as EdSigner;
 use ed25519_dalek::Verifier;
+use ed25519_dalek::pkcs8::PrivateKeyInfo;
 use rustls::{
+    SignatureScheme,
     client::danger::HandshakeSignatureValid,
     pki_types::CertificateDer,
     sign::{CertifiedKey, Signer, SigningKey},
-    SignatureScheme,
 };
 use secrecy::{DebugSecret, ExposeSecret, Secret};
 use sha3::Digest;
@@ -21,13 +21,13 @@ use slog::{error, info};
 use std::io::prelude::*;
 use std::iter;
 
-use crate::ipcc::Ipcc;
 use crate::Error;
+use crate::ipcc::Ipcc;
 use serde::Deserialize;
 use std::{fs::File, sync::Arc};
 use x509_cert::{
-    der::{self, Decode, Encode, Reader},
     Certificate,
+    der::{self, Decode, Encode, Reader},
 };
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
@@ -344,7 +344,7 @@ impl RotCertVerifier {
             None => {
                 return Err(rustls::Error::InvalidCertificate(
                     rustls::CertificateError::BadEncoding,
-                ))
+                ));
             }
         };
         let verifying_key = ed25519_dalek::VerifyingKey::from_bytes(&pubkey)

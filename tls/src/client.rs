@@ -12,19 +12,19 @@ use tokio_rustls::TlsConnector;
 
 use crate::keys::ResolveSetting;
 use crate::keys::{CertResolver, RotCertVerifier, SprocketsConfig};
-use crate::{crypto_provider, load_root_cert};
 use crate::{Error, Stream};
+use crate::{crypto_provider, load_root_cert};
 use camino::Utf8PathBuf;
 use rustls::{
+    ClientConfig, SignatureScheme,
     client::{
+        ResolvesClientCert,
         danger::{
             HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier,
         },
-        ResolvesClientCert,
     },
     sign::CertifiedKey,
     version::TLS13,
-    ClientConfig, SignatureScheme,
 };
 use slog::{error, info};
 use x509_cert::Certificate;
@@ -225,9 +225,9 @@ mod tests {
     use crate::load_root_cert;
     use crate::tests::logger;
     use camino::Utf8PathBuf;
+    use rustls::SignatureScheme;
     use rustls::client::danger::ServerCertVerifier;
     use rustls::pki_types::ServerName;
-    use rustls::SignatureScheme;
 
     #[test]
     // Ensure the test certs can be loaded and verified
