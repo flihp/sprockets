@@ -11,7 +11,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     #[cfg(target_os = "illumos")]
     {
-        println!("cargo:rustc-link-arg=-Wl,-R{}", OXIDE_PLATFORM);
-        println!("cargo:rustc-link-search={}", OXIDE_PLATFORM);
+        println!("cargo:rustc-link-arg=-Wl,-R{OXIDE_PLATFORM}");
+        println!("cargo:rustc-link-search={OXIDE_PLATFORM}");
     }
 }
