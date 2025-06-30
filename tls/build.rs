@@ -12,10 +12,12 @@ use anyhow::{Context, anyhow};
 static OXIDE_PLATFORM: &str = "/usr/platform/oxide/lib/amd64/";
 
 #[cfg(feature = "unittest")]
-fn pki_gen_cmd(cmd: &str) -> Result<()> {
-    let output = std::process::Command::new("pki-playground")
-        .arg(cmd)
-        .output()?;
+fn pki_gen_cmd(command: &str) -> Result<()> {
+    let mut cmd = std::process::Command::new("pki-playground");
+    cmd.arg(command);
+    let output = cmd
+        .output()
+        .context("executing command \"pki-playground\"")?;
 
     if !output.status.success() {
         let stdout = String::from_utf8(output.stdout).unwrap();
@@ -23,7 +25,7 @@ fn pki_gen_cmd(cmd: &str) -> Result<()> {
         let stderr = String::from_utf8(output.stderr).unwrap();
         println!("stderr: {stderr}");
 
-        return Err(anyhow!("pki-playground failed"));
+        return Err(anyhow!("cmd failed: {cmd:?}"));
     }
 
     Ok(())
@@ -34,10 +36,11 @@ fn attest_gen_cmd(command: &str, input: &str, output: &str) -> Result<()> {
     // attest-mock "input" "cmd" > "output"
     let mut cmd = std::process::Command::new("attest-mock");
     cmd.arg(input).arg(command);
-    let cmd_output = cmd.output()?;
+    let cmd_output =
+        cmd.output().context("executing command \"attest-mock\"")?;
 
     if cmd_output.status.success() {
-        std::fs::write(output, cmd_output.stdout).context("write {input}")
+        std::fs::write(output, cmd_output.stdout).context("write {output}")
     } else {
         let stderr = String::from_utf8(cmd_output.stderr).unwrap();
         println!("stderr: {stderr}");
