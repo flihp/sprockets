@@ -91,7 +91,7 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 [[package]]
 name = "attest-data"
 version = "0.4.0"
-source = "git+https://github.com/oxidecomputer/dice-util#b9c3e03febb1eb3294aa07d8f3572110fdd61699"
+source = "git+https://github.com/oxidecomputer/dice-util?rev=4b408edc1d00f108ddf635415d783e6f12fe9641#4b408edc1d00f108ddf635415d783e6f12fe9641"
 dependencies = [
  "const-oid",
  "der",
@@ -453,7 +453,7 @@ dependencies = [
 [[package]]
 name = "dice-mfg-msgs"
 version = "0.2.1"
-source = "git+https://github.com/oxidecomputer/dice-util#b9c3e03febb1eb3294aa07d8f3572110fdd61699"
+source = "git+https://github.com/oxidecomputer/dice-util?rev=4b408edc1d00f108ddf635415d783e6f12fe9641#4b408edc1d00f108ddf635415d783e6f12fe9641"
 dependencies = [
  "const-oid",
  "corncobs",
@@ -468,7 +468,7 @@ dependencies = [
 [[package]]
 name = "dice-verifier"
 version = "0.3.0-pre0"
-source = "git+https://github.com/oxidecomputer/dice-util#b9c3e03febb1eb3294aa07d8f3572110fdd61699"
+source = "git+https://github.com/oxidecomputer/dice-util?rev=4b408edc1d00f108ddf635415d783e6f12fe9641#4b408edc1d00f108ddf635415d783e6f12fe9641"
 dependencies = [
  "attest-data",
  "const-oid",
