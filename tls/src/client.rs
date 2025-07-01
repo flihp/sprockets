@@ -269,12 +269,12 @@ impl Client {
         let server_cert_chain = certs_from_der(&server_cert_chain)?;
         let root =
             dice_verifier::verify_cert_chain(&server_cert_chain, Some(&roots))?;
-        let client_platform_id =
+        let server_platform_id =
             dice_mfg_msgs::PlatformId::try_from(&server_cert_chain)?;
         info!(
             slog,
             "Cert chain from peer \"{}\" verified against root \"{}\"",
-            client_platform_id.as_str()?,
+            server_platform_id.as_str()?,
             root.tbs_certificate.subject,
         );
 
