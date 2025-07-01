@@ -342,7 +342,7 @@ mod tests {
                 .await
                 .unwrap();
 
-            let (mut stream, _) =
+            let (mut stream, _, _) =
                 server.accept(corpus.as_slice()).await.unwrap();
             let mut buf = String::new();
             stream.read_to_string(&mut buf).await.unwrap();
@@ -354,7 +354,7 @@ mod tests {
         });
 
         // Loop until we succesfully connect
-        let mut stream = loop {
+        let (mut stream, _) = loop {
             let client_config = keys::SprocketsConfig {
                 attest: keys::AttestConfig::Local {
                     priv_key: pki_keydir.join("test-alias-2.key.pem"),
@@ -374,10 +374,10 @@ mod tests {
                 pki_keydir.join("corim-sp.cbor"),
             ];
 
-            if let Ok(stream) =
+            if let Ok((stream, platform_id)) =
                 Client::connect(client_config, addr, corpus, log.clone()).await
             {
-                break stream;
+                break (stream, platform_id);
             }
             sleep(Duration::from_millis(1)).await;
         };

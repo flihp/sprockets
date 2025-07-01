@@ -6,8 +6,8 @@
 use camino::Utf8PathBuf;
 use clap::Parser;
 use slog::{Drain, info};
+use sprockets_tls::Server;
 use sprockets_tls::keys::{AttestConfig, ResolveSetting, SprocketsConfig};
-use sprockets_tls::server::Server;
 use std::net::SocketAddrV6;
 use std::str::FromStr;
 use tokio::io::{AsyncWriteExt, copy, split};
@@ -86,7 +86,10 @@ async fn main() {
         .unwrap();
 
     loop {
-        let (stream, _) = server.accept(args.corpus.as_slice()).await.unwrap();
+        let (stream, _, platform_id) =
+            server.accept(args.corpus.as_slice()).await.unwrap();
+        let platform_id = platform_id.as_str().unwrap();
+        info!(log, "connected to attested peer: {platform_id}");
         let (mut reader, mut writer) = split(stream);
         let n = copy(&mut reader, &mut writer).await.unwrap();
         writer.flush().await.unwrap();

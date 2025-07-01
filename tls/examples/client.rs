@@ -5,7 +5,7 @@
 //! Example IPCC client that echos out whatever it gets back
 use camino::Utf8PathBuf;
 use clap::Parser;
-use slog::Drain;
+use slog::{Drain, info};
 use sprockets_tls::client::Client;
 use sprockets_tls::keys::{AttestConfig, ResolveSetting, SprocketsConfig};
 use std::net::SocketAddrV6;
@@ -82,9 +82,12 @@ async fn main() {
 
     let addr = SocketAddrV6::from_str(&args.addr).unwrap();
 
-    let stream = Client::connect(client_config, addr, args.corpus, log.clone())
-        .await
-        .unwrap();
+    let (stream, platform_id) =
+        Client::connect(client_config, addr, args.corpus, log.clone())
+            .await
+            .unwrap();
+    let platform_id = platform_id.as_str().unwrap();
+    info!(log, "connected to attested peer: {platform_id}");
 
     let (mut stdin, mut stdout) = (tokio_stdin(), tokio_stdout());
     let (mut reader, mut writer) = split(stream);
