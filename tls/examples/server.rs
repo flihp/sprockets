@@ -16,10 +16,15 @@ use tokio::io::{copy, split, AsyncWriteExt};
 enum Setting {
     Ipcc,
     Local {
+        /// TLS signing key used in Trust Quorum
         tq_priv_key: Utf8PathBuf,
+        /// Cert chain for TLS signing key
         tq_cert_chain: Utf8PathBuf,
+        /// Key used to sign the attestations produced by AttestMock
         attest_priv_key: Utf8PathBuf,
+        /// Cert chain for attestation signing key
         attest_cert_chain: Utf8PathBuf,
+        /// Measurement log produced by AttestMock
         log: Utf8PathBuf,
     },
 }
@@ -31,6 +36,8 @@ struct Args {
     roots: Vec<Utf8PathBuf>,
     #[clap(subcommand)]
     config: Setting,
+    /// CBOR encoded CoRIM documents used as reference measurements in the
+    /// attestation appraisal process
     #[clap(long)]
     corpus: Vec<Utf8PathBuf>,
     /// Address and port to bind
