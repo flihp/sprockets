@@ -385,7 +385,7 @@ pub struct SprocketsConfig {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "which", rename_all = "snake_case")]
-// Configuration for attestation interface / artifacts.
+/// Configuration for attestation interface / artifacts.
 pub enum AttestConfig {
     // Use `dice-verifier::AttestIpcc`.
     Ipcc,
@@ -397,10 +397,11 @@ pub enum AttestConfig {
     },
 }
 
-// This function encapsulates our IPCC usage in a non-async function. This is
-// required till the Ipcc handle is `Send`.
-// NOTE: The `Nonce` parameter must be the nonce provided by the peer in an
-// attestation exchange.
+/// This function encapsulates our IPCC usage in a non-async function. This is
+/// required till the Ipcc handle is `Send`.
+///
+/// NOTE: The `Nonce` parameter must be the nonce provided by the peer in an
+/// attestation exchange.
 pub fn get_attest_data(
     config: &AttestConfig,
     nonce: &dice_verifier::Nonce,
