@@ -11,6 +11,8 @@ use anyhow::{anyhow, Context};
 #[cfg(target_os = "illumos")]
 static OXIDE_PLATFORM: &str = "/usr/platform/oxide/lib/amd64/";
 
+/// Execute one of the `pki-playground` commands to generate part of the PKI
+/// used for testing.
 #[cfg(feature = "unittest")]
 fn pki_gen_cmd(command: &str) -> Result<()> {
     let mut cmd = std::process::Command::new("pki-playground");
@@ -31,6 +33,8 @@ fn pki_gen_cmd(command: &str) -> Result<()> {
     Ok(())
 }
 
+/// Execute one of the `attest-mock` commands to generate attestation
+/// artifacts used in testing.
 #[cfg(feature = "unittest")]
 fn attest_gen_cmd(command: &str, input: &str, output: &str) -> Result<()> {
     // attest-mock "input" "cmd" > "output"
@@ -62,11 +66,15 @@ fn main() -> Result<()> {
         std::env::set_current_dir("test-keys/")
             .context("chdir to test keys")?;
 
+        // generate keys, certs, and cert chains / lists used by `cargo test`
         pki_gen_cmd("generate-key-pairs")?;
         pki_gen_cmd("generate-certificates")?;
         pki_gen_cmd("generate-certificate-lists")?;
 
+        // generate measurement log used by `cargo test`
         attest_gen_cmd("log", "log.kdl", "log.bin")?;
+
+        // generate the corpus of reference measurements used by `cargo test`
         attest_gen_cmd("corim", "corim-rot.kdl", "corim-rot.cbor")?;
         attest_gen_cmd("corim", "corim-sp.kdl", "corim-sp.cbor")?;
 
