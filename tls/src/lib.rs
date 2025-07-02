@@ -5,12 +5,12 @@
 //! TLS based connections
 
 use camino::Utf8PathBuf;
-use rustls::crypto::CryptoProvider;
 use rustls::crypto::ring::cipher_suite::TLS13_CHACHA20_POLY1305_SHA256;
 use rustls::crypto::ring::kx_group::X25519;
+use rustls::crypto::CryptoProvider;
 use slog::error;
-use std::io::IoSlice;
 use std::io::prelude::*;
+use std::io::IoSlice;
 use std::marker::Unpin;
 
 #[cfg(any(unix, target_os = "wasi"))]
@@ -23,8 +23,8 @@ use std::task::{self, Poll};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
 use tokio_rustls::TlsStream;
 use x509_cert::{
-    Certificate,
     der::{self, DecodePem, Encode, Reader, SliceReader},
+    Certificate,
 };
 
 pub mod client;

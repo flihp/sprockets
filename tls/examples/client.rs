@@ -5,12 +5,12 @@
 //! Example IPCC client that echos out whatever it gets back
 use camino::Utf8PathBuf;
 use clap::Parser;
-use slog::{Drain, info};
+use slog::{info, Drain};
 use sprockets_tls::client::Client;
 use sprockets_tls::keys::{AttestConfig, ResolveSetting, SprocketsConfig};
 use std::net::SocketAddrV6;
 use std::str::FromStr;
-use tokio::io::{AsyncWriteExt, copy, split};
+use tokio::io::{copy, split, AsyncWriteExt};
 use tokio::io::{stdin as tokio_stdin, stdout as tokio_stdout};
 
 #[derive(Debug, Parser)]

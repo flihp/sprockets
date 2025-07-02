@@ -12,11 +12,11 @@ use tokio_rustls::TlsConnector;
 
 use crate::keys::{AttestConfig, ResolveSetting};
 use crate::keys::{CertResolver, RotCertVerifier, SprocketsConfig};
-use crate::{Error, Stream};
 use crate::{
     certs_from_der, certs_to_der, crypto_provider, load_root_cert, recv_msg,
     send_msg,
 };
+use crate::{Error, Stream};
 use camino::Utf8PathBuf;
 use dice_mfg_msgs::PlatformId;
 use dice_verifier::{
@@ -24,15 +24,15 @@ use dice_verifier::{
 };
 use hubpack::SerializedSize;
 use rustls::{
-    ClientConfig, SignatureScheme,
     client::{
-        ResolvesClientCert,
         danger::{
             HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier,
         },
+        ResolvesClientCert,
     },
     sign::CertifiedKey,
     version::TLS13,
+    ClientConfig, SignatureScheme,
 };
 use slog::{error, info};
 use x509_cert::Certificate;
@@ -329,9 +329,9 @@ mod tests {
     use crate::load_root_cert;
     use crate::tests::logger;
     use camino::Utf8PathBuf;
-    use rustls::SignatureScheme;
     use rustls::client::danger::ServerCertVerifier;
     use rustls::pki_types::ServerName;
+    use rustls::SignatureScheme;
 
     #[test]
     // Ensure the test certs can be loaded and verified

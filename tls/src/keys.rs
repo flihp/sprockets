@@ -5,14 +5,14 @@
 //! TLS based connections
 
 use camino::Utf8PathBuf;
+use ed25519_dalek::pkcs8::PrivateKeyInfo;
 use ed25519_dalek::Signer as EdSigner;
 use ed25519_dalek::Verifier;
-use ed25519_dalek::pkcs8::PrivateKeyInfo;
 use rustls::{
-    SignatureScheme,
     client::danger::HandshakeSignatureValid,
     pki_types::CertificateDer,
     sign::{CertifiedKey, Signer, SigningKey},
+    SignatureScheme,
 };
 use secrecy::{DebugSecret, ExposeSecret, Secret};
 use sha3::Digest;
@@ -20,13 +20,13 @@ use slog::{error, info};
 use std::io::prelude::*;
 use std::iter;
 
-use crate::Error;
 use crate::ipcc::Ipcc;
+use crate::Error;
 use serde::Deserialize;
 use std::{fs::File, sync::Arc};
 use x509_cert::{
-    Certificate,
     der::{self, Decode, Encode, Reader},
+    Certificate,
 };
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
@@ -412,7 +412,7 @@ pub fn get_attest_data(
     ),
     Error,
 > {
-    use dice_verifier::{Attest, AttestMock, ipcc::AttestIpcc};
+    use dice_verifier::{ipcc::AttestIpcc, Attest, AttestMock};
 
     // create the `Attest` impl prescribed by the config
     let attest: Box<dyn Attest> = match config {

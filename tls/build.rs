@@ -4,7 +4,7 @@
 
 use anyhow::Result;
 #[cfg(feature = "unittest")]
-use anyhow::{Context, anyhow};
+use anyhow::{anyhow, Context};
 
 /// This path is where Oxide specific libraries live on helios systems.
 /// This is needed for linking with libipcc

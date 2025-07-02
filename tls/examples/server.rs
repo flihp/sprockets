@@ -5,12 +5,12 @@
 //! Example IPCC server that echos back whatever was sent
 use camino::Utf8PathBuf;
 use clap::Parser;
-use slog::{Drain, info};
-use sprockets_tls::Server;
+use slog::{info, Drain};
 use sprockets_tls::keys::{AttestConfig, ResolveSetting, SprocketsConfig};
+use sprockets_tls::Server;
 use std::net::SocketAddrV6;
 use std::str::FromStr;
-use tokio::io::{AsyncWriteExt, copy, split};
+use tokio::io::{copy, split, AsyncWriteExt};
 
 #[derive(Debug, Parser)]
 enum Setting {

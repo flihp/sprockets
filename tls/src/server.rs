@@ -8,11 +8,11 @@ use crate::keys::{
     AttestConfig, CertResolver, ResolveSetting, RotCertVerifier,
     SprocketsConfig,
 };
-use crate::{Error, Stream};
 use crate::{
     certs_from_der, certs_to_der, crypto_provider, load_root_cert, recv_msg,
     send_msg,
 };
+use crate::{Error, Stream};
 use camino::Utf8PathBuf;
 use dice_mfg_msgs::PlatformId;
 use dice_verifier::{
@@ -20,19 +20,19 @@ use dice_verifier::{
 };
 use hubpack::SerializedSize;
 use rustls::{
-    CipherSuite, ServerConfig, SignatureScheme,
     server::{
-        ResolvesServerCert,
         danger::{ClientCertVerified, ClientCertVerifier},
+        ResolvesServerCert,
     },
     version::TLS13,
+    CipherSuite, ServerConfig, SignatureScheme,
 };
 use slog::{error, info};
 use std::net::SocketAddrV6;
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::TlsAcceptor;
-use x509_cert::{Certificate, der::DecodePem};
+use x509_cert::{der::DecodePem, Certificate};
 
 impl ResolvesServerCert for CertResolver {
     fn resolve(
