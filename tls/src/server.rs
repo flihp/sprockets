@@ -5,8 +5,8 @@
 //! A TLS based server
 
 use crate::keys::{
-    AttestConfig, CertResolver, ResolveSetting, RotCertVerifier,
-    SprocketsConfig,
+    get_attest_data, AttestConfig, CertResolver, ResolveSetting,
+    RotCertVerifier, SprocketsConfig,
 };
 use crate::{
     certs_from_der, certs_to_der, crypto_provider, load_root_cert, recv_msg,
@@ -270,12 +270,11 @@ impl Server {
         send_msg(&mut stream, nonce.as_ref()).await?;
 
         // get attestation & verify it before sending it
-        let (cert_chain, log, attestation) =
-            crate::keys::get_attest_data(&self.attest_config, &client_nonce)?;
+        let attest_data = get_attest_data(&self.attest_config, &client_nonce)?;
         dice_verifier::verify_attestation(
-            &cert_chain[0],
-            &attestation,
-            &log,
+            &attest_data.certs[0],
+            &attest_data.attestation,
+            &attest_data.log,
             &client_nonce,
         )?;
 
@@ -296,15 +295,16 @@ impl Server {
         );
 
         // send server attestation cert chain to client
-        let cert_chain_der = certs_to_der(&cert_chain)?;
+        let cert_chain_der = certs_to_der(&attest_data.certs)?;
         send_msg(&mut stream, &cert_chain_der).await?;
 
         // get measurement log from client
         let client_log = recv_msg(&mut stream).await?;
         let (client_log, _): (Log, _) = hubpack::deserialize(&client_log)?;
+
         // send server measurement log to client
         let mut buf = vec![0u8; Log::MAX_SIZE];
-        let len = hubpack::serialize(&mut buf, &log)?;
+        let len = hubpack::serialize(&mut buf, &attest_data.log)?;
         send_msg(&mut stream, &buf[..len]).await?;
 
         // get attestation from client
@@ -330,7 +330,7 @@ impl Server {
 
         // hubpack the attestation and send to client
         let mut buf = vec![0u8; Attestation::MAX_SIZE];
-        let len = hubpack::serialize(&mut buf, &attestation)?;
+        let len = hubpack::serialize(&mut buf, &attest_data.attestation)?;
         send_msg(&mut stream, &buf[..len]).await?;
 
         Ok((Stream::new(stream.into()), addr, client_platform_id))

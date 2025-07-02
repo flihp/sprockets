@@ -10,7 +10,7 @@ use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio_rustls::TlsConnector;
 
-use crate::keys::{AttestConfig, ResolveSetting};
+use crate::keys::{get_attest_data, AttestConfig, ResolveSetting};
 use crate::keys::{CertResolver, RotCertVerifier, SprocketsConfig};
 use crate::{
     certs_from_der, certs_to_der, crypto_provider, load_root_cert, recv_msg,
@@ -251,18 +251,16 @@ impl Client {
         let server_nonce = recv_msg(&mut stream).await?;
         let server_nonce = Nonce::try_from(server_nonce)?;
 
-        let (cert_chain, log, attestation) =
-            crate::keys::get_attest_data(&attest_config, &server_nonce)?;
-
+        let attest_data = get_attest_data(&attest_config, &server_nonce)?;
         dice_verifier::verify_attestation(
-            &cert_chain[0],
-            &attestation,
-            &log,
+            &attest_data.certs[0],
+            &attest_data.attestation,
+            &attest_data.log,
             &server_nonce,
         )?;
 
         // send client attestation cert chain to server
-        let cert_chain_der = certs_to_der(&cert_chain)?;
+        let cert_chain_der = certs_to_der(&attest_data.certs)?;
         send_msg(&mut stream, &cert_chain_der).await?;
 
         // get & verify server attestation cert chain
@@ -281,7 +279,7 @@ impl Client {
 
         // send measurement log to server
         let mut buf = vec![0u8; Log::MAX_SIZE];
-        let log_len = hubpack::serialize(&mut buf, &log)?;
+        let log_len = hubpack::serialize(&mut buf, &attest_data.log)?;
         send_msg(&mut stream, &buf[..log_len]).await?;
 
         // get measurement log from server
@@ -290,7 +288,7 @@ impl Client {
 
         // hubpack attestation and send to server
         let mut buf = vec![0u8; Attestation::MAX_SIZE];
-        let len = hubpack::serialize(&mut buf, &attestation)?;
+        let len = hubpack::serialize(&mut buf, &attest_data.attestation)?;
         send_msg(&mut stream, &buf[..len]).await?;
 
         // get attestation from server
