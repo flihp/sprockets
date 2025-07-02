@@ -204,7 +204,7 @@ pub fn load_root_cert(path: &Utf8PathBuf) -> Result<Certificate, Error> {
     Ok(root)
 }
 
-fn certs_to_der(certs: &Vec<Certificate>) -> Result<Vec<u8>, Error> {
+fn certs_to_der(certs: &[Certificate]) -> Result<Vec<u8>, Error> {
     let mut der = Vec::new();
 
     for cert in certs {
