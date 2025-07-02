@@ -22,9 +22,11 @@ fn pki_gen_cmd(command: &str) -> Result<()> {
         .context("executing command \"pki-playground\"")?;
 
     if !output.status.success() {
-        let stdout = String::from_utf8(output.stdout).unwrap();
+        let stdout = String::from_utf8(output.stdout)
+            .context("String from pki-playground stdout")?;
         println!("stdout: {stdout}");
-        let stderr = String::from_utf8(output.stderr).unwrap();
+        let stderr = String::from_utf8(output.stderr)
+            .context("String from pki-playground stderr")?;
         println!("stderr: {stderr}");
 
         return Err(anyhow!("cmd failed: {cmd:?}"));
@@ -46,7 +48,8 @@ fn attest_gen_cmd(command: &str, input: &str, output: &str) -> Result<()> {
     if cmd_output.status.success() {
         std::fs::write(output, cmd_output.stdout).context("write {output}")
     } else {
-        let stderr = String::from_utf8(cmd_output.stderr).unwrap();
+        let stderr = String::from_utf8(cmd_output.stderr)
+            .context("String from attest-mock stderr")?;
         println!("stderr: {stderr}");
 
         Err(anyhow!("cmd failed: {cmd:?}"))
