@@ -222,7 +222,7 @@ impl Client {
         roots: Vec<Certificate>,
         reference_measurements: ReferenceMeasurements,
         addr: SocketAddrV6,
-        slog: slog::Logger,
+        log: slog::Logger,
     ) -> Result<(Stream<TcpStream>, PlatformId), Error> {
         // Nodes on the bootstrap network don't have DNS names. We don't
         // actually ever know who we are connecting to on the bootstrap
@@ -271,7 +271,7 @@ impl Client {
         let server_platform_id =
             dice_mfg_msgs::PlatformId::try_from(&server_cert_chain)?;
         info!(
-            slog,
+            log,
             "Cert chain from peer \"{}\" verified against root \"{}\"",
             server_platform_id.as_str()?,
             root.tbs_certificate.subject,
@@ -303,7 +303,7 @@ impl Client {
             &server_log,
             &nonce,
         )?;
-        info!(slog, "Peer attestation verified");
+        info!(log, "Peer attestation verified");
 
         // appraise measurements from server attestation against reference
         // measurements
@@ -313,7 +313,7 @@ impl Client {
             &measurements,
             &reference_measurements,
         )?;
-        info!(slog, "Peer measurements appraised successfully");
+        info!(log, "Peer measurements appraised successfully");
 
         Ok((Stream::new(stream.into()), server_platform_id))
     }
