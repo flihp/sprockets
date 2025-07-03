@@ -120,10 +120,10 @@ impl Client {
     /// the `config`uration provided. Before the stream is returned to the
     /// client
     /// - the TLS handshake will be completed and mutually authenticated
-    /// against the roots from the `config`
+    ///   against the roots from the `config`
     /// - the attestation process is carried out with peer credentials
-    /// authenticated by the roots from the `config` and peer measurements
-    /// appraised using the provided `corpus`
+    ///   authenticated by the roots from the `config` and peer measurements
+    ///   appraised using the provided `corpus`
     ///
     /// NOTE: This function is not cancel safe and should be run in a dedicated
     /// task.
