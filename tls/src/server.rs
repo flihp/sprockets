@@ -270,6 +270,9 @@ impl Server {
         send_msg(&mut stream, nonce.as_ref()).await?;
 
         // get attestation & verify it before sending it
+        // The attesation protocol has an inherent race condition between
+        // getting the log and the attestation. We verify our own attestation
+        // before sending it to the challenger to fail as early as possible.
         let attest_data = get_attest_data(&self.attest_config, &client_nonce)?;
         dice_verifier::verify_attestation(
             &attest_data.certs[0],
