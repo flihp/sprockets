@@ -32,6 +32,8 @@ zeroize.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true
+camino.workspace = true
+pki-playground.workspace = true
 
 [features]
 unittest = []
