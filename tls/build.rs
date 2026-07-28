@@ -54,12 +54,12 @@ fn main() -> Result<()> {
                 anyhow!("Loading config from \"{}\" failed: {e:?}", config_path)
             })?;
 
-        doc.write_key_pairs(outdir.clone(), OutputFileExistsBehavior::Skip)
+        doc.write_key_pairs(&outdir, OutputFileExistsBehavior::Skip)
             .map_err(|e| anyhow!("writing key pairs failed: {e:?}"))?;
-        doc.write_certificates(outdir.clone(), OutputFileExistsBehavior::Skip)
+        doc.write_certificates(&outdir, OutputFileExistsBehavior::Skip)
             .map_err(|e| anyhow!("writing certificates failed: {e:?}"))?;
         doc.write_certificate_lists(
-            outdir.clone(),
+            &outdir,
             OutputFileExistsBehavior::Skip,
         )
         .map_err(|e| anyhow!("writing cert chains failed: {e:?}"))?;

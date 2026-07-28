@@ -604,7 +604,7 @@ dependencies = [
  "libipcc 0.1.0 (git+https://github.com/oxidecomputer/ipcc-rs?rev=7cdf2ab9c8d9e9267a8b366aa780c6c26f9a5ecf)",
  "log",
  "p384",
- "pki-playground",
+ "pki-playground 0.2.0 (git+https://github.com/oxidecomputer/pki-playground?rev=bcd3bf2dfe36468c494eac17463a4e10be366b35)",
  "rats-corim",
  "sha3",
  "slog",
@@ -1348,6 +1348,36 @@ dependencies = [
 [[package]]
 name = "pki-playground"
 version = "0.2.0"
+source = "git+https://github.com/flihp/pki-playground?rev=b9c9c8d799cc5b408966d1f73666f159093e6bfb#b9c9c8d799cc5b408966d1f73666f159093e6bfb"
+dependencies = [
+ "camino",
+ "clap",
+ "const-oid",
+ "der",
+ "digest",
+ "ed25519-dalek",
+ "flagset",
+ "hex",
+ "ipnet",
+ "knus",
+ "miette",
+ "p384",
+ "pem-rfc7468",
+ "pkcs8",
+ "rand",
+ "rsa",
+ "sha1",
+ "sha2",
+ "sha3",
+ "signature",
+ "spki",
+ "x509-cert",
+ "zeroize",
+]
+
+[[package]]
+name = "pki-playground"
+version = "0.2.0"
 source = "git+https://github.com/oxidecomputer/pki-playground?rev=bcd3bf2dfe36468c494eac17463a4e10be366b35#bcd3bf2dfe36468c494eac17463a4e10be366b35"
 dependencies = [
  "camino",
@@ -2018,7 +2048,7 @@ dependencies = [
  "hubpack",
  "libipcc 0.1.0 (git+https://github.com/oxidecomputer/ipcc-rs?rev=524eb8f125003dff50b9703900c6b323f00f9e1b)",
  "pem-rfc7468",
- "pki-playground",
+ "pki-playground 0.2.0 (git+https://github.com/flihp/pki-playground?rev=b9c9c8d799cc5b408966d1f73666f159093e6bfb)",
  "rustls",
  "secrecy",
  "serde",
@@ -2042,7 +2072,7 @@ name = "sprockets-tls-test-utils"
 version = "0.1.0"
 dependencies = [
  "camino",
- "pki-playground",
+ "pki-playground 0.2.0 (git+https://github.com/flihp/pki-playground?rev=b9c9c8d799cc5b408966d1f73666f159093e6bfb)",
  "pretty_assertions",
 ]
 
